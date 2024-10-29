@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de BTUs de Ar Condicionado</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f4f6f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    .container { background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); padding: 30px; width: 100%; max-width: 400px; text-align: center; }
+    h2 { color: #333; margin-bottom: 20px; font-size: 1.5em; }
+    label { font-size: 1em; color: #555; display: block; text-align: left; margin-bottom: 5px; }
+    .input-container { display: flex; align-items: center; }
+    input { flex: 1; padding: 10px; margin: 0 5px; border: 1px solid #ddd; border-radius: 5px; font-size: 1em; background-color: #f9f9f9; }
+    button { background-color: #3498db; color: white; border: none; border-radius: 5px; padding: 10px; font-size: 1.1em; cursor: pointer; transition: background-color 0.3s; }
+    button:hover { background-color: #2980b9; }
+    .result { margin-top: 20px; font-size: 1.2em; color: #333; font-weight: bold; }
+    #refazer { display: none; margin-top: 10px; background-color: #e74c3c; }
+    #refazer:hover { background-color: #c0392b; }
+    .variacoes { margin-top: 10px; font-size: 0.9em; color: #555; text-align: left; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Calculadora de BTUs de Ar Condicionado</h2>
+  
+  <label for="largura">Largura do Ambiente (m):</label>
+  <div class="input-container">
+    <button onclick="alterarValor('largura', -1)">-</button>
+    <input type="number" id="largura" placeholder="Ex: 5">
+    <button onclick="alterarValor('largura', 1)">+</button>
+  </div>
+
+  <label for="altura">Altura do Ambiente (m):</label>
+  <div class="input-container">
+    <button onclick="alterarValor('altura', -1)">-</button>
+    <input type="number" id="altura" placeholder="Ex: 4">
+    <button onclick="alterarValor('altura', 1)">+</button>
+  </div>
+
+  <label for="comprimento">Comprimento do Ambiente (m):</label>
+  <div class="input-container">
+    <button onclick="alterarValor('comprimento', -1)">-</button>
+    <input type="number" id="comprimento" placeholder="Ex: 6">
+    <button onclick="alterarValor('comprimento', 1)">+</button>
+  </div>
+
+  <label for="pessoas">Número de Pessoas:</label>
+  <div class="input-container">
+    <button onclick="alterarValor('pessoas', -1)">-</button>
+    <input type="number" id="pessoas" placeholder="Ex: 3">
+    <button onclick="alterarValor('pessoas', 1)">+</button>
+  </div>
+
+  <label for="eletronicos">Número de Aparelhos Eletrônicos <small>(computadores, televisores, etc.)</small>:</label>
+  <div class="input-container">
+    <button onclick="alterarValor('eletronicos', -1)">-</button>
+    <input type="number" id="eletronicos" placeholder="Ex: 2">
+    <button onclick="alterarValor('eletronicos', 1)">+</button>
+  </div>
+
+  <label for="exposicao">Exposição ao Sol:</label>
+  <select id="exposicao">
+    <option value="indireta">Indireta (sem luz direta)</option>
+    <option value="parcial">Parcial (luz indireta ou parte do dia)</option>
+    <option value="direta">Direta (luz direta)</option>
+  </select>
+
+  <button onclick="calcularBTUs()">Calcular BTUs</button>
+  <button id="refazer" onclick="refazerCalculo()">Refazer Cálculo</button>
+
+  <div class="result" id="resultado"></div>
+  <div class="variacoes" id="variacoes"></div>
+</div>
+
+<script>
+  function alterarValor(id, delta) {
+    const input = document.getElementById(id);
+    let valorAtual = parseInt(input.value) || 0; // Pega o valor atual, ou 0 se for NaN
+    valorAtual += delta; // Aumenta ou diminui o valor
+    input.value = Math.max(valorAtual, 0); // Não permite valores negativos
+  }
+
+  function calcularBTUs() {
+    const largura = parseFloat(document.getElementById('largura').value);
+    const altura = parseFloat(document.getElementById('altura').value);
+    const comprimento = parseFloat(document.getElementById('comprimento').value);
+    const pessoas = parseInt(document.getElementById('pessoas').value);
+    const eletronicos = parseInt(document.getElementById('eletronicos').value);
+    const exposicao = document.getElementById('exposicao').value;
+
+    if (isNaN(largura) || isNaN(altura) || isNaN(comprimento) || isNaN(pessoas) || isNaN(eletronicos)) {
+      alert("Por favor, preencha todos os campos.");
+      return;
+    }
+
+    // Cálculo da área do ambiente
+    const area = largura * altura * comprimento;
+
+    // Cálculo inicial de BTUs
+    let btus = (area * 300) + (pessoas * 200) + (eletronicos * 150);
+
+    // Ajuste conforme a exposição solar
+    if (exposicao === 'direta') {
+      btus *= 1.5; // Ajustar conforme necessidade
+    } else if (exposicao === 'parcial') {
+      btus *= 1.25; // Ajustar conforme necessidade
+    } else {
+      btus *= 1.0;
+    }
+
+    // Arredondar para os modelos cadastrados
+    const modelos = [56000, 36000, 30000, 24000, 18000, 12000, 9000];
+    const btusArredondado = arredondarBTUs(btus, modelos);
+
+    // Exibir o resultado arredondado
+    document.getElementById('resultado').innerHTML = `BTUs necessários: ${btusArredondado} BTUs`;
+
+    // Exibir variações possíveis
+    document.getElementById('variacoes').innerHTML = exibirVariacoes(btusArredondado, modelos);
+
+    // Exibir botão de refazer cálculo
+    document.getElementById('refazer').style.display = 'block';
+  }
+
+  function arredondarBTUs(btus, modelos) {
+    // Encontra o modelo mais próximo
+    let menorDiferenca = Infinity;
+    let modeloEscolhido = modelos[0];
+
+    modelos.forEach(modelo => {
+      const diferenca = Math.abs(btus - modelo);
+      if (diferenca < menorDiferenca) {
+        menorDiferenca = diferenca;
+        modeloEscolhido = modelo;
+      }
+    });
+
+    return modeloEscolhido;
+  }
+
+  function exibirVariacoes(btus, modelos) {
+    let variacoesHTML = '<strong>Variações possíveis:</strong><br>';
+    const combinacoes = [];
+
+    // Criar combinações para cada modelo disponível
+    modelos.forEach(modelo => {
+      if (btus >= modelo) {
+        const quantidade = btus / modelo;
+        if (Number.isInteger(quantidade)) {
+          combinacoes.push(`${quantidade} unidades de ${modelo} BTUs`);
+        }
+      }
+    });
+
+    variacoesHTML += combinacoes.join('<br>') || 'Nenhuma variação disponível.';
+    return variacoesHTML;
+  }
+
+  function refazerCalculo() {
+    document.getElementById('largura').value = '';
+    document.getElementById('altura').value = '';
+    document.getElementById('comprimento').value = '';
+    document.getElementById('pessoas').value = '';
+    document.getElementById('eletronicos').Aqui está a continuação e o ajuste do código da calculadora de BTUs:
+
+```html
+    value = '';
+    document.getElementById('exposicao').value = 'indireta';
+    document.getElementById('resultado').innerHTML = '';
+    document.getElementById('variacoes').innerHTML = '';
+    document.getElementById('refazer').style.display = 'none';
+  }
+</script>
+
+</body>
+</html>
